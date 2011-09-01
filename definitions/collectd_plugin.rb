@@ -34,6 +34,26 @@ define :collectd_plugin, :options => {}, :template => nil, :cookbook => nil do
   end
 end
 
+define :collectd_exec_plugin, :options => {}, :template => nil, :cookbook => nil do
+  template "/etc/collectd/plugins/#{params[:name]}.conf" do
+    owner "root"
+    group "root"
+    mode "644"
+    if params[:template].nil? || params[:template].empty?
+      source "exec_plugin.conf.erb"
+      cookbook params[:cookbook] || "collectd"
+    else
+      source params[:template]
+      cookbook params[:cookbook]
+    end
+    variables :name=>params[:name], :options=>params[:options]
+    notifies :restart, resources(:service => "collectd")
+  end
+end
+
+
+
+
 define :collectd_python_plugin, :options => {}, :module => nil, :path => nil do
   begin
     t = resources(:template => "/etc/collectd/plugins/python.conf")
